@@ -5,26 +5,24 @@
 
   outputs = { self, nixpkgs }@inputs:
 
-  let
-    system = "x86_64-linux";
-    pkgs   = import nixpkgs
-    { inherit system;
-      overlays = [ self.overlay ];
-    };
+    let
+      system = "x86_64-linux";
+      pkgs   = import nixpkgs { inherit system; };
 
-    mergeNixEnvs = envs :
-      pkgs.mkShell (
-        builtins.foldl' ( a: b: {
-          buildInputs                 = a.buildInputs ++ b.buildInputs;
-          nativeBuildInputs           = a.nativeBuildInputs ++ b.nativeBuildInputs;
-          propagatedBuildInputs       = a.propagatedBuildInputs ++ b.propagatedBuildInputs;
-          propagatedNativeBuildInputs = a.propagatedNativeBuildInputs ++ b.propagatedNativeBuildInputs;
-          shellHook                   = a.shellHook + "\n" + b.shellHook;
-        })
-        (pkgs.mkShell {})
-        envs);
+    in
 
-  in
-
-    { overlay = final : prev : { inherit mergeNixEnvs;   }; };
+      { lib = {
+        mergeNixEnvs = envs :
+          pkgs.mkShell (
+            builtins.foldl' ( a: b: {
+              buildInputs                 = a.buildInputs ++ b.buildInputs;
+              nativeBuildInputs           = a.nativeBuildInputs ++ b.nativeBuildInputs;
+              propagatedBuildInputs       = a.propagatedBuildInputs ++ b.propagatedBuildInputs;
+              propagatedNativeBuildInputs = a.propagatedNativeBuildInputs ++ b.propagatedNativeBuildInputs;
+              shellHook                   = a.shellHook + "\n" + b.shellHook;
+            })
+            (pkgs.mkShell {})
+            envs);
+        };
+      };
 }
